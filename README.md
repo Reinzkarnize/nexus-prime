@@ -6,50 +6,49 @@
 
 > **"Learning is a mission, not a chore."**
 
-**NEXUS PRIME** adalah sebuah *Learning Management System* (LMS) berbasis web yang dirancang dengan estetika *Cyberpunk* dan *Gaming UI* (terinspirasi dari Valorant & Overwatch). Proyek ini mengubah pengalaman menonton video pembelajaran menjadi sebuah misi taktis.
+**NEXUS PRIME** is a web-based Learning Management System (LMS) designed with a high-fidelity **Cyberpunk & Gaming UI** aesthetic (inspired by Valorant & Overwatch). This project re-imagines the standard video learning experience, turning it into a tactical mission.
 
-![App Screenshot](LINK_GAMBAR_SCREENSHOT_ANDA_DISINI.jpg)
-*(Jangan lupa ganti link di atas dengan screenshot asli aplikasi Anda setelah di-upload)*
+![App Screenshot](https://i.pinimg.com/736x/ac/97/08/ac970848fa0ca7d02d35d652a94310cb.jpg)
 
-## ✨ Fitur Utama (Key Features)
+## ✨ Key Features
 
-* **🖥️ Immersive Boot Sequence:** Animasi startup layaknya menyalakan terminal komputer masa depan.
-* **🔊 Audio Engine (Web Audio API):** Efek suara (SFX) prosedural untuk hover, klik, dan notifikasi tanpa menggunakan file mp3 eksternal (menggunakan Oscillator).
-* **🔐 Admin Security Protocol:** Sistem PIN sederhana (Default: `1337`) untuk mengakses mode edit/admin.
-* **📂 Dynamic Content Management:** Menambah kursus (misi) dan video baru yang tersimpan di `LocalStorage`.
-* **📱 Responsive Cyber-Layout:** Tampilan grid yang adaptif untuk Desktop, Tablet, dan Mobile dengan nuansa *Glassmorphism*.
-* **✅ Progress Tracking:** Menandai video yang sudah selesai ditonton layaknya menyelesaikan *objective*.
+* **🖥️ Immersive Boot Sequence:** A cinematic startup animation that simulates a futuristic terminal boot-up.
+* **🔊 Procedural Audio Engine:** Custom SFX for hovers, clicks, and alerts generated entirely via the **Web Audio API** (Oscillators), using zero external MP3 files.
+* **🔐 Admin Security Protocol:** A PIN-based security system (Default: `1337`) to unlock "Admin Mode" for content management.
+* **📂 Dynamic Content Management:** Add new courses (missions) and videos directly through the UI, persisted via **LocalStorage**.
+* **📱 Responsive Cyber-Layout:** An adaptive grid layout featuring Glassmorphism that works seamlessly on Desktop, Tablet, and Mobile.
+* **✅ Mission Tracking:** Mark videos as "complete" to track your progress, just like completing mission objectives.
 
-## 🛠️ Teknologi (Tech Stack)
+## 🛠️ Tech Stack
 
-Proyek ini dibangun **MURNI** menggunakan teknologi dasar web tanpa Framework (No React, No Vue, No jQuery), untuk mendemonstrasikan pemahaman mendalam tentang DOM Manipulation dan CSS Modern.
+This project was built using **Pure Vanilla JavaScript** (No Frameworks, No Libraries) to demonstrate a deep understanding of DOM Manipulation and Modern CSS.
 
-* **HTML5:** Semantik markup.
-* **CSS3:** CSS Variables, Flexbox, Grid Layout, Backdrop Filter, & Animations.
-* **JavaScript (Vanilla):** ES6+, LocalStorage Management, Web Audio API Context.
+* **HTML5:** Semantic markup.
+* **CSS3:** CSS Variables, Grid/Flexbox, Backdrop Filters, and Keyframe Animations.
+* **JavaScript (ES6+):** Logic, State Management, LocalStorage, and AudioContext.
 
-## 🚀 Cara Menjalankan (Installation)
+## 🚀 Installation & Usage
 
-Karena proyek ini adalah *Static Web App*, Anda tidak perlu menginstall `npm` atau server backend.
+Since this is a static web application, no backend server or npm installation is required.
 
-1.  **Clone repository ini:**
+1.  **Clone the repository:**
     ```bash
-    git clone [https://github.com/username-anda/nexus-prime.git](https://github.com/username-anda/nexus-prime.git)
+    git clone [https://github.com/your-reinzkarnize/NEXUS-PRIME-Tactical-Learning-System.git](https://github.com/reinzkarnize/NEXUS-PRIME-Tactical-Learning-System)
     ```
-2.  **Buka file:**
-    Klik ganda `index.html` untuk membuka di browser.
-3.  **Akses Admin Mode:**
-    Klik tombol "PROTOCOL: OVERRIDE" di pojok kanan atas dan masukkan PIN: `1337`.
+2.  **Run the App:**
+    Simply open `index.html` in your modern web browser.
+3.  **Access Admin Mode:**
+    Click the "PROTOCOL: OVERRIDE" button in the top right corner and enter the PIN: `1337`.
 
 ## 📸 Gallery
 
 | Boot Screen | Mission Select | Tactical Classroom |
 |-------------|----------------|--------------------|
-| ![Boot](link_gambar_boot.jpg) | ![Home](link_gambar_home.jpg) | ![Player](link_gambar_player.jpg) |
+| ![Boot](https://i.pinimg.com/736x/f3/b2/c6/f3b2c6855ba595ce224b47848a787a41.jpg) | ![Home](https://i.pinimg.com/736x/ac/97/08/ac970848fa0ca7d02d35d652a94310cb.jpg) | ![Player](https://i.pinimg.com/736x/d8/3e/f1/d83ef1f3fcdcb06d321754d0f63684f6.jpg) |
 
-## 🤝 Kontribusi
+## 🤝 Contribution
 
-Proyek ini adalah portofolio pribadi. Namun, saran dan *pull request* untuk perbaikan UI/UX sangat diterima!
+This is a personal portfolio project. However, suggestions and pull requests for UI/UX improvements are always welcome!
 
 ---
-*Built with 💜 and ☕ by [Nama Anda]*
+*Built with 💜 and ☕ by reinzkarnize*
