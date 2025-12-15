@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEXUS PRIME - Command Center</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Orbitron:wght@500;700;900&family=Courier+Prime&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div id="boot-overlay">
+        <div class="boot-container">
+            <div class="boot-logo">NEXUS<span class="pulse-text">PRIME</span></div>
+            <div id="start-prompt" class="blink-text">[ CLICK TO INITIALIZE SYSTEM ]</div>
+            <div class="terminal-text hidden" id="terminal-log">> SYSTEM WAKE...</div>
+            <div class="loading-bar-container hidden" id="bar-wrapper">
+                <div class="loading-bar" id="boot-bar"></div>
+            </div>
+            <div class="scan-line"></div>
+        </div>
+    </div>
+
+    <div id="ambient-bg"></div>
+    <div id="grid-overlay"></div>
+    <canvas id="particle-canvas"></canvas>
+    
+    <header>
+        <div class="logo"><i class="ri-gamepad-fill"></i> NEXUS<span>PRIME</span></div>
+        <div style="display: flex; gap: 15px;">
+            <button id="add-course-btn" class="btn" onclick="openModal()">
+                <i class="ri-add-circle-line"></i> New Operation
+            </button>
+        </div>
+    </header>
+
+    <div id="app-container">
+        <div id="home-view">
+            <div class="controls-bar">
+                <h1 class="page-title">Mission Select</h1>
+                <button class="btn-outline" onclick="requestOverride()" id="admin-btn">
+                    <i class="ri-shield-keyhole-line"></i> PROTOCOL: OVERRIDE
+                </button>
+            </div>
+            <div class="course-grid" id="course-list-container"></div>
+        </div>
+
+        <div id="sub-course-view" class="hidden">
+            <div style="margin-bottom: 30px;">
+                <button class="btn-outline" onclick="goBackToHome()">
+                    <i class="ri-arrow-left-line"></i> Abort to Main Menu
+                </button>
+            </div>
+            <div class="controls-bar section-header">
+                <div>
+                    <h1 class="page-title" id="parent-course-title">Operation Title</h1>
+                    <p class="subtitle-text">SELECT SECTOR</p>
+                </div>
+            </div>
+            <div class="course-grid" id="sub-course-container"></div>
+        </div>
+
+        <div id="classroom-view" class="hidden">
+            <div style="margin-bottom: 20px;">
+                <button class="btn-outline" onclick="goBackFromClassroom()">
+                    <i class="ri-arrow-left-line"></i> Back to Sector
+                </button>
+            </div>
+            <div class="classroom-layout">
+                <aside class="glass-panel notes-panel">
+                    <div class="panel-header">
+                        <i class="ri-sticky-note-line"></i> TACTICAL LOG 
+                        <span id="note-context-label" style="font-size: 0.7rem; color: #666; margin-left: auto;">...</span>
+                    </div>
+                    <textarea id="user-notes" placeholder="// Awaiting manual input..."></textarea>
+                    <div id="save-status">System Idle</div>
+                </aside>
+                <main class="player-stage">
+                    <div class="video-wrapper">
+                        <div id="youtube-player"></div>
+                    </div>
+                    <div style="margin-top: 15px;">
+                        <h2 id="active-video-title">Video Title</h2>
+                        <p id="active-context-title">Context</p>
+                    </div>
+                </main>
+                <aside class="glass-panel playlist-panel">
+                    <div class="panel-header playlist-header">
+                        <i class="ri-list-check-2"></i> OBJECTIVES
+                    </div>
+                    <div class="playlist-items" id="playlist-container"></div>
+                </aside>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-overlay" class="modal-overlay">
+        <div class="modal-content">
+            <h2 class="modal-title">INITIALIZE NEW OP</h2>
+            <label class="input-label">Operation Name</label>
+            <input type="text" id="new-title" placeholder="Ex: Valorant Tactics">
+            <label class="input-label">Cover Image URL</label>
+            <input type="text" id="new-image" placeholder="https://...">
+            <label class="input-label">Mission Briefing</label>
+            <textarea id="new-desc" rows="2" placeholder="Description..."></textarea>
+            
+            <div class="mode-switch-container">
+                <label class="input-label" style="margin-bottom:0;">Structure Mode:</label>
+                <div style="display:flex; gap:10px; margin-top:5px;">
+                    <button id="btn-mode-direct" class="btn-outline mode-active" onclick="setMode('direct')">Single List</button>
+                    <button id="btn-mode-sector" class="btn-outline" onclick="setMode('sector')">Multi-Sector</button>
+                </div>
+            </div>
+
+            <div id="form-direct-area" class="video-input-section">
+                <label class="section-label">Video List</label>
+                <div id="video-inputs-container"></div>
+                <button class="btn-outline full-width" onclick="addVideoRow('video-inputs-container')">+ Add Video Slot</button>
+            </div>
+
+            <div id="form-sector-area" class="video-input-section hidden">
+                <label class="section-label">Sector Configuration</label>
+                <div id="sector-inputs-container"></div>
+                <button class="btn full-width" onclick="addSectorBlock()">+ Add New Sector</button>
+            </div>
+
+            <div class="modal-actions">
+                <button class="btn-outline" onclick="closeModal()">Cancel</button>
+                <button class="btn" onclick="saveNewCourse()">Confirm Init</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="pin-modal" class="modal-overlay">
+        <div class="pin-content">
+            <h3 class="pin-title">SECURITY CLEARANCE</h3>
+            <p style="color:#666; font-size:0.8rem; margin-bottom:15px;">ENTER PASSCODE TO UNLOCK EDIT PRIVILEGES</p>
+            <input type="password" id="pin-input" maxlength="4" placeholder="_ _ _ _" readonly>
+            <div class="pin-numpad">
+                <button onclick="addPin(1)">1</button><button onclick="addPin(2)">2</button><button onclick="addPin(3)">3</button>
+                <button onclick="addPin(4)">4</button><button onclick="addPin(5)">5</button><button onclick="addPin(6)">6</button>
+                <button onclick="addPin(7)">7</button><button onclick="addPin(8)">8</button><button onclick="addPin(9)">9</button>
+                <button onclick="clearPin()" style="color:var(--danger)">C</button>
+                <button onclick="addPin(0)">0</button>
+                <button onclick="submitPin()" style="color:var(--secondary)">OK</button>
+            </div>
+            <button class="btn-text-only" onclick="closePinModal()">CANCEL REQUEST</button>
+        </div>
+    </div>
+    
+    <script src="script.js"></script>
+</body>
+</html>
