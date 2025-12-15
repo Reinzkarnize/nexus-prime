@@ -122,6 +122,7 @@ function init() {
         const stored = localStorage.getItem('nexusUltCoursesV2');
         courses = stored ? JSON.parse(stored) : JSON.parse(JSON.stringify(defaultCourses));
     } catch (e) {
+        console.error("Storage Error, Resetting DB");
         courses = JSON.parse(JSON.stringify(defaultCourses));
     }
     renderHome();
@@ -132,6 +133,11 @@ function setupInteraction() {
     document.body.addEventListener('mouseenter', (e) => {
         if (e.target.closest('button') || e.target.closest('.course-card') || e.target.closest('.video-item')) sfx.hover();
     }, true);
+    
+    // Auto-scroll logic for classroom on mobile
+    if(window.innerWidth < 900) {
+        window.scrollTo(0, 0);
+    }
 }
 
 function saveData() { localStorage.setItem('nexusUltCoursesV2', JSON.stringify(courses)); }
@@ -159,6 +165,7 @@ window.clickMainCourse = (id) => {
     else { activeSubCourse = null; openClassroom(activeCourse.modules, activeCourse.title); }
 }
 
+// --- FIX: RENDER SUB VIEW (SAME STYLE AS HOME) ---
 function renderSubView(parentCourse) {
     sfx.swoosh(); 
     homeView.classList.add('hidden'); 
@@ -171,28 +178,20 @@ function renderSubView(parentCourse) {
     parentCourse.subCourses.forEach(sub => {
         const card = document.createElement('div'); 
         card.className = 'course-card';
-        
-        // 1. Badge: Kita tambahkan badge agar visualnya konsisten dengan Home
         const badgeHtml = `<div class="badge single"><i class="ri-hard-drive-2-line"></i> SECTOR DATA</div>`;
-        
-        // 2. Deskripsi: Kita format "Data Files" agar masuk ke style .course-desc
         const descHtml = `<i class="ri-database-2-line" style="color:var(--secondary); margin-right:5px;"></i> ${sub.modules.length} Data Files Encrypted`;
 
-        // 3. Struktur HTML disamakan persis dengan renderHome
         card.innerHTML = `
             <div class="course-img-wrapper"> 
                 <img src="${sub.image}" class="course-img" onerror="this.src='https://via.placeholder.com/300'">
                 <div class="course-overlay"></div>
                 ${badgeHtml}
             </div>
-            
             <div class="course-info">
                 <div class="course-title">${sub.title}</div>
-                
                 <div class="course-desc" style="display:flex; align-items:center;">
                     ${descHtml}
                 </div>
-                
                 <button class="btn full-width" onclick="clickSubCourse('${sub.id}'); sfx.click()">
                     <i class="ri-play-circle-fill"></i> START MISSION
                 </button>
@@ -201,12 +200,14 @@ function renderSubView(parentCourse) {
         subCourseContainer.appendChild(card);
     });
 }
+
 window.clickSubCourse = (subId) => { activeSubCourse = activeCourse.subCourses.find(s => s.id === subId); openClassroom(activeSubCourse.modules, activeCourse.title + " // " + activeSubCourse.title); }
 
 function openClassroom(modules, contextTitle) {
     sfx.swoosh(); subCourseView.classList.add('hidden'); homeView.classList.add('hidden'); classroomView.classList.remove('hidden');
     document.getElementById('active-context-title').innerText = contextTitle; renderPlaylist(modules);
     if (modules && modules.length > 0) playVideo(modules[0]); else playerContainer.innerHTML = '<div style="color:var(--danger); display:flex; justify-content:center; align-items:center; height:100%;">NO SIGNAL</div>';
+    if(window.innerWidth < 900) window.scrollTo({top: 0, behavior: 'smooth'});
 }
 
 function renderPlaylist(modules) {
@@ -215,20 +216,62 @@ function renderPlaylist(modules) {
         const subPrefix = activeSubCourse ? activeSubCourse.id : 'direct'; const storageKey = `done_${activeCourse.id}_${subPrefix}_${mod.id}`;
         const isChecked = localStorage.getItem(storageKey) === 'true' ? 'checked' : '';
         const item = document.createElement('div'); item.className = 'video-item'; item.id = `vid-${mod.id}`;
-        item.innerHTML = `<div class="idx-number">${idx+1 < 10 ? '0'+(idx+1) : idx+1}</div><label class="check-container" onclick="event.stopPropagation()"><input type="checkbox" class="check-input" ${isChecked} onchange="toggleDone('${storageKey}');"><span class="checkmark"></span></label><div class="v-item-content" onclick="playVideoByObjId('${mod.id}'); sfx.click()"><div class="v-item-title">${mod.title}</div><div class="v-item-meta"><i class="ri-time-line"></i> ${mod.duration}</div></div>`;
+        item.innerHTML = `
+            <div class="idx-number">${idx+1 < 10 ? '0'+(idx+1) : idx+1}</div>
+            <label class="check-container" onclick="event.stopPropagation()">
+                <input type="checkbox" class="check-input" ${isChecked} onchange="toggleDone('${storageKey}');">
+                <span class="checkmark"></span>
+            </label>
+            <div class="v-item-content" onclick="playVideoByObjId('${mod.id}'); sfx.click()">
+                <div class="v-item-title">${mod.title}</div>
+                <div class="v-item-meta"><i class="ri-time-line"></i> ${mod.duration}</div>
+            </div>`;
         playlistContainer.appendChild(item);
     });
 }
 window.playVideoByObjId = (vidId) => { const currentList = activeSubCourse ? activeSubCourse.modules : activeCourse.modules; const mod = currentList.find(m => m.id === vidId); playVideo(mod); }
 
+// --- FIX: BETTER URL PARSER ---
+function getYoutubeID(url) {
+    if (!url) return null;
+    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=|shorts\/)([^#&?]*).*/;
+    const match = url.match(regExp);
+    return (match && match[2].length === 11) ? match[2] : null;
+}
+
+// --- FIX: ROBUST VIDEO PLAYER ---
 function playVideo(module) {
-    activeVideo = module; document.getElementById('active-video-title').innerText = module.title; sfx.data_stream();
+    activeVideo = module;
+    document.getElementById('active-video-title').innerText = module.title;
+    sfx.data_stream();
     document.querySelectorAll('.video-item').forEach(el => el.classList.remove('active'));
-    const el = document.getElementById(`vid-${module.id}`); if(el) el.classList.add('active');
+    const el = document.getElementById(`vid-${module.id}`);
+    if(el) {
+         el.classList.add('active');
+         el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
     const videoId = getYoutubeID(module.url);
-    playerContainer.innerHTML = `<iframe src="https://www.youtube.com/embed/${videoId}?autoplay=1&theme=dark&rel=0" frameborder="0" allowfullscreen allow="autoplay"></iframe>`;
+    if(videoId) {
+        const origin = window.location.origin;
+        playerContainer.innerHTML = `
+            <iframe 
+                src="https://www.youtube.com/embed/${videoId}?autoplay=1&theme=dark&rel=0&modestbranding=1&origin=${origin}" 
+                frameborder="0" 
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                allowfullscreen>
+            </iframe>`;
+    } else {
+        playerContainer.innerHTML = `
+            <div style="height:100%; display:flex; flex-direction:column; justify-content:center; align-items:center; color:var(--danger); text-align:center; padding:20px; background: rgba(20,20,20,0.8);">
+                <i class="ri-signal-wifi-error-line" style="font-size:4rem; margin-bottom:15px; text-shadow:0 0 15px var(--danger);"></i>
+                <div style="font-family:var(--font-heading); font-size:1.5rem; letter-spacing:2px;">SIGNAL LOST</div>
+                <div style="color:#888; font-size:0.9rem; margin-top:10px; font-family:monospace;">ERROR: INVALID_URL_FORMAT</div>
+            </div>`;
+    }
     loadNotesForActiveVideo();
 }
+
 function loadNotesForActiveVideo() { if(!activeVideo) return; const noteKey = `notes_v_${activeVideo.id}`; notesArea.value = localStorage.getItem(noteKey) || ''; notesArea.dataset.key = noteKey; }
 
 let lastTypeTime = 0;
@@ -236,19 +279,74 @@ notesArea.addEventListener('input', (e) => {
     const now = Date.now(); if (now - lastTypeTime > 60) { sfx.data_stream(); lastTypeTime = now; }
     const key = e.target.dataset.key; if(key) { localStorage.setItem(key, e.target.value); document.getElementById('save-status').innerText = "SAVING..."; clearTimeout(notesArea.to); notesArea.to = setTimeout(() => { document.getElementById('save-status').innerText = "LOG SECURED"; sfx.click(); }, 1000); }
 });
-function getYoutubeID(url) { const match = url.match(/^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/); return (match && match[2].length === 11) ? match[2] : null; }
 window.toggleDone = (key) => { sfx.boot_complete(); const current = localStorage.getItem(key) === 'true'; localStorage.setItem(key, !current); };
 
 window.goBackToHome = () => { sfx.back(); activeCourse = null; activeSubCourse = null; activeVideo = null; renderHome(); };
 window.goBackFromClassroom = () => { sfx.back(); playerContainer.innerHTML = ''; activeVideo = null; if (activeSubCourse) renderSubView(activeCourse); else goBackToHome(); };
 
 // --- MODAL & SECURITY ---
-window.openModal = () => { if (!isAdminMode) { sfx.denied(); setTimeout(()=>sfx.denied(),200); alert("ACCESS DENIED"); return; } sfx.swoosh(); document.getElementById('new-title').value = ''; document.getElementById('video-inputs-container').innerHTML = ''; setMode('direct'); addVideoRow('video-inputs-container'); modal.classList.add('open'); };
+window.openModal = () => { if (!isAdminMode) { sfx.denied(); setTimeout(()=>sfx.denied(),200); alert("ACCESS DENIED: ADMIN ONLY"); return; } sfx.swoosh(); document.getElementById('new-title').value = ''; document.getElementById('video-inputs-container').innerHTML = ''; setMode('direct'); addVideoRow('video-inputs-container'); modal.classList.add('open'); };
 window.closeModal = () => { sfx.back(); modal.classList.remove('open'); };
-window.setMode = (mode) => { sfx.click(); modalMode = mode; const d = document.getElementById('form-direct-area'); const s = document.getElementById('form-sector-area'); if(mode==='direct'){d.classList.remove('hidden');s.classList.add('hidden');}else{d.classList.add('hidden');s.classList.remove('hidden');} };
-window.addVideoRow = (cId) => { sfx.click(); const d = document.createElement('div'); d.className='v-row'; d.innerHTML=`<input type="text" class="v-title" placeholder="Title"><input type="text" class="v-url" placeholder="URL"><input type="text" class="v-dur" placeholder="10:00" style="width:70px"><button class="btn-icon-only" onclick="this.parentElement.remove();sfx.back()"><i class="ri-close-line"></i></button>`; document.getElementById(cId).appendChild(d); };
+window.setMode = (mode) => { sfx.click(); modalMode = mode; const d = document.getElementById('form-direct-area'); const s = document.getElementById('form-sector-area'); 
+    document.getElementById('btn-mode-direct').className = mode === 'direct' ? 'btn-outline mode-active' : 'btn-outline';
+    document.getElementById('btn-mode-sector').className = mode === 'sector' ? 'btn-outline mode-active' : 'btn-outline';
+    if(mode==='direct'){d.classList.remove('hidden');s.classList.add('hidden');}else{d.classList.add('hidden');s.classList.remove('hidden');} 
+};
+window.addVideoRow = (cId) => { sfx.click(); const d = document.createElement('div'); d.className='v-row'; d.innerHTML=`<input type="text" class="v-title" placeholder="Title"><input type="text" class="v-url" placeholder="URL"><input type="text" class="v-dur" placeholder="10:00"><button class="btn-icon-only" style="width:30px; height:30px; flex-shrink:0;" onclick="this.parentElement.remove();sfx.back()"><i class="ri-close-line"></i></button>`; document.getElementById(cId).appendChild(d); };
 window.addSectorBlock = () => { sfx.click(); const c = document.getElementById('sector-inputs-container'); const id = 'sec_'+Date.now(); const b = document.createElement('div'); b.className='sector-block'; b.innerHTML=`<div class="sector-header-row"><input type="text" class="sector-input sector-title-val" placeholder="Sector Name"><button class="btn-delete-sector" onclick="this.closest('.sector-block').remove();sfx.back()"><i class="ri-delete-bin-2-line"></i></button></div><div class="sector-video-list" id="vlist_${id}"></div><button class="btn-add-vid-small" onclick="addVideoRow('vlist_${id}')">+ Add Video</button>`; c.appendChild(b); addVideoRow(`vlist_${id}`); };
-window.saveNewCourse = () => { sfx.boot_complete(); closeModal(); renderHome(); }; 
+
+// --- FIX: SAVE NEW COURSE LOGIC ---
+window.saveNewCourse = () => {
+    const titleInput = document.getElementById('new-title').value;
+    const imgInput = document.getElementById('new-image').value;
+    const descInput = document.getElementById('new-desc').value;
+
+    if (!titleInput) { alert("CRITICAL ERROR: Operation Title Required!"); sfx.denied(); return; }
+
+    const newId = Date.now();
+    let newCourse = {
+        id: newId,
+        title: titleInput,
+        image: imgInput || 'https://via.placeholder.com/300?text=NO+IMG',
+        description: descInput || 'No briefing available.',
+        subCourses: [],
+        modules: []
+    };
+
+    if (modalMode === 'direct') {
+        const rows = document.querySelectorAll('#video-inputs-container .v-row');
+        rows.forEach((row, index) => {
+            const vTitle = row.querySelector('.v-title').value;
+            const vUrl = row.querySelector('.v-url').value;
+            const vDur = row.querySelector('.v-dur').value;
+            if (vTitle && vUrl) {
+                newCourse.modules.push({ id: `v_${newId}_${index}`, title: vTitle, url: vUrl, duration: vDur || "00:00" });
+            }
+        });
+    } else {
+        const sectors = document.querySelectorAll('#sector-inputs-container .sector-block');
+        sectors.forEach((sec, sIndex) => {
+            const secTitle = sec.querySelector('.sector-title-val').value || `Sector ${sIndex + 1}`;
+            let subCourseObj = { id: `s_${newId}_${sIndex}`, title: secTitle, image: imgInput, modules: [] };
+            const vRows = sec.querySelectorAll('.v-row');
+            vRows.forEach((row, vIndex) => {
+                const vTitle = row.querySelector('.v-title').value;
+                const vUrl = row.querySelector('.v-url').value;
+                const vDur = row.querySelector('.v-dur').value;
+                if (vTitle && vUrl) {
+                    subCourseObj.modules.push({ id: `v_${newId}_${sIndex}_${vIndex}`, title: vTitle, url: vUrl, duration: vDur || "00:00" });
+                }
+            });
+            newCourse.subCourses.push(subCourseObj);
+        });
+    }
+    courses.push(newCourse);
+    saveData();
+    sfx.boot_complete();
+    renderHome();
+    closeModal();
+};
+
 window.deleteCourse = (id,e) => { e.stopPropagation(); sfx.denied(); if(confirm("Confirm Delete?")) { courses = courses.filter(c => c.id !== id); saveData(); renderHome(); } };
 
 window.requestOverride = () => {
@@ -264,7 +362,14 @@ window.requestOverride = () => {
     }
 }
 window.closePinModal = () => { sfx.back(); document.getElementById('pin-modal').classList.remove('open'); }
-window.addPin = (num) => { sfx.data_stream(); const input = document.getElementById('pin-input'); if (input.value.length < 4) input.value += num; }
+window.addPin = (num) => { 
+    sfx.data_stream(); 
+    const input = document.getElementById('pin-input'); 
+    if (input.value.length < 4) {
+        input.value += num; 
+        if(input.value.length === 4) setTimeout(submitPin, 200); 
+    }
+}
 window.clearPin = () => { sfx.back(); document.getElementById('pin-input').value = ''; }
 window.submitPin = () => {
     const input = document.getElementById('pin-input').value;
@@ -276,8 +381,10 @@ window.submitPin = () => {
     } else {
         sfx.denied(); setTimeout(()=>sfx.denied(), 200);
         document.querySelector('.pin-content').style.animation = 'shake 0.3s';
-        setTimeout(() => document.querySelector('.pin-content').style.animation = '', 300);
-        document.getElementById('pin-input').value = '';
+        setTimeout(() => {
+             document.querySelector('.pin-content').style.animation = '';
+             document.getElementById('pin-input').value = '';
+        }, 300);
     }
 }
 const styleSheet = document.createElement("style"); styleSheet.innerText = `@keyframes shake { 0% { transform: translateX(0); } 25% { transform: translateX(-10px); } 75% { transform: translateX(10px); } 100% { transform: translateX(0); } }`; document.head.appendChild(styleSheet);
@@ -285,12 +392,9 @@ const styleSheet = document.createElement("style"); styleSheet.innerText = `@key
 // --- STARTUP ---
 function startExperience() {
     if (ctx && ctx.state === 'suspended') ctx.resume();
-    
-    // Explicitly un-hide
     document.getElementById('terminal-log').classList.remove('hidden');
     document.getElementById('bar-wrapper').classList.remove('hidden');
     document.getElementById('start-prompt').style.display = 'none';
-
     runBootSequence();
 }
 
@@ -298,7 +402,6 @@ function runBootSequence() {
     const overlay = document.getElementById('boot-overlay');
     const bar = document.getElementById('boot-bar');
     const log = document.getElementById('terminal-log');
-    
     const steps = ["CONNECTING...", "LOADING ASSETS...", "BYPASSING SECURITY...", "ESTABLISHING UPLINK...", "DECRYPTING...", "ACCESS GRANTED."];
     let stepIndex = 0; let progress = 0;
 
@@ -308,12 +411,10 @@ function runBootSequence() {
         progress += Math.random() * 5; 
         if(progress > 100) progress = 100;
         bar.style.width = progress + "%";
-
         if (progress > 20 && stepIndex === 0) { log.innerText = "> " + steps[1]; stepIndex++; sfx.data_stream(); }
         if (progress > 40 && stepIndex === 1) { log.innerText = "> " + steps[2]; stepIndex++; sfx.data_stream(); }
         if (progress > 60 && stepIndex === 2) { log.innerText = "> " + steps[3]; stepIndex++; sfx.data_stream(); }
         if (progress > 80 && stepIndex === 3) { log.innerText = "> " + steps[4]; stepIndex++; sfx.data_stream(); }
-        
         if (progress >= 100) {
             clearInterval(bootInterval);
             log.innerText = "> " + steps[5]; log.style.color = "#00ff00";
@@ -326,18 +427,18 @@ function runBootSequence() {
     }, 100);
 }
 
-// Init Trigger
 document.getElementById('boot-overlay').addEventListener('click', startExperience, {once:true});
 
-// Particles (Performance Optimized: Only render visible)
+// Particles
 const canvas = document.getElementById('particle-canvas');
 if (canvas) {
     const ctxCanvas = canvas.getContext('2d');
     let particles = []; let w, h;
     function resize() { w = canvas.width = window.innerWidth; h = canvas.height = window.innerHeight; }
-    class P { constructor(){this.x=Math.random()*w;this.y=Math.random()*h;this.vx=(Math.random()-.5)*.5;this.vy=(Math.random()-.5)*.5;this.s=Math.random()*2;this.a=Math.random()*.5;} update(){this.x+=this.vx;this.y+=this.vy;if(this.x<0||this.x>w)this.vx*=-1;if(this.y<0||this.y>h)this.vy*=-1;} draw(){ctxCanvas.beginPath();ctxCanvas.arc(this.x,this.y,this.s,0,7);ctxCanvas.fillStyle=`rgba(138,43,226,${this.a})`;ctxCanvas.fill();} }
+    class P { constructor(){this.reset();} reset(){this.x=Math.random()*w;this.y=Math.random()*h;this.vx=(Math.random()-.5)*.5;this.vy=(Math.random()-.5)*.5;this.s=Math.random()*2;this.a=Math.random()*.5;} update(){this.x+=this.vx;this.y+=this.vy;if(this.x<0||this.x>w)this.vx*=-1;if(this.y<0||this.y>h)this.vy*=-1;} draw(){ctxCanvas.beginPath();ctxCanvas.arc(this.x,this.y,this.s,0,7);ctxCanvas.fillStyle=`rgba(138,43,226,${this.a})`;ctxCanvas.fill();} }
+    const pCount = window.innerWidth < 768 ? 20 : 50;
     function loop() { ctxCanvas.clearRect(0,0,w,h); particles.forEach(p=>{p.update();p.draw();}); requestAnimationFrame(loop); }
-    window.addEventListener('resize', resize); resize(); for(let i=0;i<50;i++)particles.push(new P()); loop();
+    window.addEventListener('resize', resize); resize(); for(let i=0;i<pCount;i++)particles.push(new P()); loop();
 }
 
 init();
