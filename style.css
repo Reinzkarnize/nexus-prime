@@ -157,8 +157,34 @@ header {
 }
 body.admin-mode #add-course-btn { opacity: 1; pointer-events: all; transform: translateY(0) scale(1); filter: grayscale(0); box-shadow: 0 0 20px var(--primary); }
 
-.delete-btn-pos { position:absolute; top:15px; right:15px; z-index:10; display: none; }
-body.admin-mode .delete-btn-pos { display: block; animation: popIn 0.3s; }
+/* Update bagian ini di style.css */
+
+/* Posisi container tombol admin di kartu */
+.delete-btn-pos { 
+    position: absolute; 
+    top: 15px; 
+    right: 15px; 
+    z-index: 10; 
+    display: none; 
+    gap: 5px; /* Jarak antar tombol */
+}
+
+/* Pastikan flexbox aktif saat admin mode */
+body.admin-mode .delete-btn-pos { 
+    display: flex; /* Ganti block jadi flex */
+    animation: popIn 0.3s; 
+}
+
+/* Warna khusus tombol edit */
+.btn-edit {
+    background: rgba(0, 247, 255, 0.1);
+    border: 1px solid var(--secondary);
+    color: var(--secondary);
+}
+.btn-edit:hover {
+    background: var(--secondary);
+    color: black;
+}
 @keyframes popIn { from { transform: scale(0); } to { transform: scale(1); } }
 body.admin-mode::before { content: ''; position: fixed; inset: 0; border: 2px solid var(--danger); box-shadow: inset 0 0 50px rgba(255, 23, 68, 0.2); pointer-events: none; z-index: 999; animation: danger-pulse 2s infinite; }
 body.admin-mode #admin-btn { background: var(--danger); color: white; border-color: var(--danger); box-shadow: 0 0 20px var(--danger); }
@@ -197,11 +223,10 @@ body.admin-mode #admin-btn { background: var(--danger); color: white; border-col
 /* --- CLASSROOM LAYOUT (FIXED GRID AREAS) --- */
 .classroom-layout { 
     display: grid; 
-    /* Layout Desktop: Notes (Kiri) | Video (Tengah) | Playlist (Kanan) */
     grid-template-columns: 280px minmax(0, 1fr) 320px; 
     grid-template-areas: "notes video playlist";
     gap: 20px; 
-    height: calc(100vh - 160px); /* Adjusted height to prevent double scroll */
+    height: calc(100vh - 160px); 
     width: 100%;
 }
 
@@ -217,10 +242,7 @@ body.admin-mode #admin-btn { background: var(--danger); color: white; border-col
 #user-notes { flex: 1; padding: 15px; border: none; resize: none; outline: none; font-family: var(--font-mono); font-size: 0.9rem; line-height: 1.6; color: #e0f7ff; background: transparent; }
 #save-status { padding: 8px 15px; background: #000; border-top: 1px solid rgba(255, 255, 255, 0.1); font-family: var(--font-heading); font-size: 0.7rem; color: #555; text-transform: uppercase; letter-spacing: 1px; text-align: right; }
 
-
-
 /* 2. Video Stage (Center) */
-
 .player-stage { 
     grid-area: video; 
     display: flex; 
@@ -269,8 +291,6 @@ body.admin-mode #admin-btn { background: var(--danger); color: white; border-col
 .check-input:checked ~ .checkmark::after { opacity: 1; transform: scale(1); }
 
 /* --- RESPONSIVE OVERRIDES --- */
-
-/* Tablet / Small Laptop */
 @media (max-width: 1200px) {
     .classroom-layout { 
         grid-template-columns: 1fr 340px; 
@@ -281,18 +301,14 @@ body.admin-mode #admin-btn { background: var(--danger); color: white; border-col
     }
 }
 
-/* Mobile */
 @media (max-width: 900px) {
     .classroom-layout { 
         display: flex; flex-direction: column; height: auto; 
     }
     #app-container { padding: 15px; }
-    
-    /* Order: Video (Top) -> Playlist (Mid) -> Notes (Bottom) */
     .player-stage { order: 1; margin-bottom: 20px; }
     .playlist-panel { order: 2; height: 350px; flex-shrink: 0; margin-bottom: 20px; }
     .notes-panel { order: 3; height: 200px; flex-shrink: 0; }
-    
     .video-wrapper { position: sticky; top: 0; z-index: 50; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
     header { padding: 10px 15px; }
     .logo span { display: none; }
@@ -322,6 +338,14 @@ input:focus, textarea:focus { border-color: var(--secondary); outline: none; bac
 .sector-header-row { display: grid; grid-template-columns: 1fr auto; gap: 10px; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px dashed rgba(255, 255, 255, 0.1); }
 .sector-input { background: rgba(0, 0, 0, 0.3) !important; border: 1px solid #444 !important; height: 40px; margin-bottom: 0 !important; }
 .btn-delete-sector { width: 40px; height: 40px; background: rgba(255, 23, 68, 0.1); border: 1px solid rgba(255, 23, 68, 0.3); color: var(--danger); border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+
+/* Sub Sector Nested Styles (Updated) */
+.sub-sector-list { margin-top: 10px; padding-left: 10px; border-left: 2px dashed rgba(255, 255, 255, 0.1); }
+.sub-sector-block { background: rgba(138, 43, 226, 0.1); border: 1px solid rgba(138, 43, 226, 0.3); padding: 12px; border-radius: 8px; margin-bottom: 15px; position: relative; }
+.sub-sector-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+.btn-add-sub { background: rgba(0, 247, 255, 0.1); color: var(--secondary); border: 1px solid var(--secondary); width: 100%; padding: 8px; border-radius: 6px; cursor: pointer; font-size: 0.75rem; font-family: var(--font-heading); margin-top: 5px; }
+.btn-add-sub:hover { background: var(--secondary); color: #000; }
+
 .sector-video-list { background: rgba(0, 0, 0, 0.2); border-radius: 8px; padding: 10px; margin-bottom: 10px; }
 .btn-add-vid-small { background: transparent; border: 1px dashed #555; color: #888; width: 100%; padding: 8px; font-size: 0.75rem; border-radius: 6px; cursor: pointer; text-transform: uppercase; }
 
@@ -334,38 +358,32 @@ input:focus, textarea:focus { border-color: var(--secondary); outline: none; bac
 .pin-numpad button { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 15px; border-radius: 8px; font-family: var(--font-heading); font-size: 1.2rem; cursor: pointer; transition: 0.2s; touch-action: manipulation; }
 .pin-numpad button:active { background: var(--secondary); color: black; }
 
-/* --- CUSTOM SCROLLBAR (CYBERPUNK THEME) --- */
-::-webkit-scrollbar {
-    width: 6px;  
-    height: 6px; 
-}
-::-webkit-scrollbar-track {
-    background: rgba(0, 0, 0, 0.3); 
-    border-radius: 4px;
-}
-::-webkit-scrollbar-thumb {
-    background: #333; 
-    border: 1px solid rgba(255, 255, 255, 0.1); 
-    border-radius: 4px;
-    transition: all 0.3s ease;
-}
-::-webkit-scrollbar-thumb:hover {
-    background: var(--secondary); 
-    box-shadow: 0 0 10px var(--secondary-glow); 
-    border-color: transparent;
-}
-/* Firefox */
+/* --- CUSTOM SCROLLBAR --- */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.3); border-radius: 4px; }
+::-webkit-scrollbar-thumb { background: #333; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 4px; transition: all 0.3s ease; }
+::-webkit-scrollbar-thumb:hover { background: var(--secondary); box-shadow: 0 0 10px var(--secondary-glow); border-color: transparent; }
 * { scrollbar-width: thin; scrollbar-color: #333 var(--bg-dark); }
+.player-stage, .playlist-items, #video-inputs-container { scrollbar-width: none; -ms-overflow-style: none; }
+.player-stage::-webkit-scrollbar, .playlist-items::-webkit-scrollbar, #video-inputs-container::-webkit-scrollbar { display: none; }
 
-/* --- HIDE INTERNAL SCROLLBARS (CLEAN UI) --- */
-.player-stage, 
-.playlist-items,
-#video-inputs-container {
-    scrollbar-width: none; 
-    -ms-overflow-style: none; 
+/* --- SWAP BUTTON LOGIC (Normal vs Admin) --- */
+
+/* Default: Tombol Start muncul, Tombol Edit sembunyi */
+.btn-start {
+    display: inline-flex !important;
 }
-.player-stage::-webkit-scrollbar,
-.playlist-items::-webkit-scrollbar,
-#video-inputs-container::-webkit-scrollbar {
-    display: none; 
+.btn-edit-action {
+    display: none !important;
+}
+
+/* Saat Admin Mode Aktif: Tombol Start sembunyi, Tombol Edit muncul */
+body.admin-mode .btn-start {
+    display: none !important;
+}
+body.admin-mode .btn-edit-action {
+    display: inline-flex !important;
+    background: linear-gradient(135deg, var(--secondary), #00a8cc); /* Warna beda untuk Edit */
+    color: black;
+    box-shadow: 0 4px 15px var(--secondary-glow);
 }
